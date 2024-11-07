@@ -4,7 +4,14 @@ const socketIo = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+
+// Configuration du CORS pour Socket.io (permettre les connexions locales pour le développement)
+const io = socketIo(server, {
+    cors: {
+        origin: "http://localhost:5500", // Remplace cette URL par l'URL de ton frontend en développement
+        methods: ["GET", "POST"]
+    }
+});
 
 // Liste des salons actifs (simple stockage en mémoire)
 let rooms = {}; // Ex : { roomCode: { users: [] } }
