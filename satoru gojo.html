@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        /* Styles de base */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://images3.alphacoders.com/748/thumb-1920-748367.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            animation: backgroundAnimation 30s ease-in-out infinite;
+        }
+
+        @keyframes backgroundAnimation {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        /* Conteneur principal */
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ffeb3b;
+            font-size: 2em;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Formulaires */
+        form {
+            margin: 20px 0;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"],
+        input[type="submit"],
+        button {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+            font-size: 1em;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            width: 80%;
+        }
+
+        input[type="submit"], button {
+            background: linear-gradient(45deg, #ff0057, #ff7e00);
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        input[type="submit"]:hover,
+        button:hover {
+            background: linear-gradient(45deg, #ff7e00, #ff0057);
+        }
+
+        /* Sections pour musique et recherche YouTube */
+        .song-choice label,
+        .video-results p {
+            font-size: 1.1em;
+            color: #ffffff;
+        }
+
+        .song-choice,
+        .youtube-search {
+            margin-top: 20px;
+        }
+
+        /* Liens externes */
+        .external-links a {
+            margin: 10px;
+            padding: 10px 15px;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .external-links a:hover {
+            background-color: #2563eb;
+        }
+    </style>
+    <!-- Recherche YouTube -->
+    <div class="youtube-search">
+        <h2>Recherche YouTube</h2>
+        <form id="youtube-search-form" action="#" method="POST">
+            <input type="text" id="search-query" placeholder="Recherchez sur YouTube..." required>
+            <input type="submit" value="Rechercher">
+        </form>
+        <div class="video-results" id="video-results"></div>
+    </div>
+
+    <script>
+        const apiKeyYouTube = "AIzaSyBnsGkf2D_vWBpW14wwIQ9HROK8_Rs1YXg";
+
+        document.getElementById('youtube-search-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const query = document.getElementById('search-query').value;
+            searchYouTube(query);
+        });
+
+        function searchYouTube(query) {
+            const endpoint = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=7&q=${query}&type=video&key=${apiKeyYouTube}`;
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(data => {
+                    const videoResults = document.getElementById('video-results');
+                    videoResults.innerHTML = '';
+                    data.items.forEach(item => {
+                        const videoId = item.id.videoId;
+                        const videoTitle = item.snippet.title;
+                        const videoContainer = document.createElement('div');
+                        videoContainer.innerHTML = `
+                            <iframe width="300" height="170" src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
+                            <p>${videoTitle}</p>
+                        `;
+                        videoResults.appendChild(videoContainer);
+                    });
+                })
+                .catch(error => console.error('Erreur:', error));
+        }
+    </script>
+
+
+</head>
+<body>
+    <h1>Bienvenue dans le chat</h1>
+    <div>
+        <input type="text" id="username" placeholder="Entrez votre pseudo" />
+    </div>
+    <div>
+        <button id="createRoomBtn">Créer un salon</button>
+        <button id="joinRoomBtn">Rejoindre un salon</button>
+    </div>
+    <div id="roomCodeSection" style="display: none;">
+        <input type="text" id="roomCode" placeholder="Code du salon" />
+        <button id="joinWithCodeBtn">Rejoindre avec le code</button>
+    </div>
+    <div id="chatArea" style="display: none;">
+        <h2>Chat Room</h2>
+        <div id="messages"></div>
+        <input type="text" id="messageInput" placeholder="Écrivez un message" />
+        <button id="sendMessageBtn">Envoyer</button>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
