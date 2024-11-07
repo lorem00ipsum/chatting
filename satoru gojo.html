@@ -148,7 +148,7 @@
 
 </head>
 <body>
-    <h1>Bienvenue dans le chat</h1>
+   <h1>Bienvenue dans le chat</h1>
     <div>
         <input type="text" id="username" placeholder="Entrez votre pseudo" />
     </div>
@@ -160,12 +160,99 @@
         <input type="text" id="roomCode" placeholder="Code du salon" />
         <button id="joinWithCodeBtn">Rejoindre avec le code</button>
     </div>
+    <div id="createdRoomCodeSection" style="display: none;">
+        <p>Le code de votre salon : <span id="roomCodeDisplay"></span></p>
+    </div>
     <div id="chatArea" style="display: none;">
         <h2>Chat Room</h2>
         <div id="messages"></div>
         <input type="text" id="messageInput" placeholder="Écrivez un message" />
         <button id="sendMessageBtn">Envoyer</button>
     </div>
-    <script src="app.js"></script>
+
+    <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
+    <script>
+        const socket = io('https://my-chat-app.onrender.com');
+        
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const roomCodeSection = document.getElementById('roomCodeSection');
+        const joinWithCodeBtn = document.getElementById('joinWithCodeBtn');
+        const createdRoomCodeSection = document.getElementById('createdRoomCodeSection');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const chatArea = document.getElementById('chatArea');
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const usernameInput = document.getElementById('username');
+        let username = '';
+        let currentRoomCode = '';
+
+        // Créer un salon
+        createRoomBtn.addEventListener('click', () => {
+            username = usernameInput.value;
+            if (username) {
+                socket.emit('create-room', username); // Crée un salon avec le pseudo
+            } else {
+                alert('Entrez un pseudo pour créer un salon.');
+            }
+        });
+
+        // Rejoindre un salon
+        joinRoomBtn.addEventListener('click', () => {
+            roomCodeSection.style.display = 'block';
+        });
+
+        // Rejoindre avec un code de salon
+        joinWithCodeBtn.addEventListener('click', () => {
+            const roomCode = document.getElementById('roomCode').value;
+            socket.emit('join-room', username, roomCode); // Essaye de rejoindre un salon
+        });
+
+        // Affichage du code du salon après sa création
+        socket.on('room-created', (roomCode) => {
+            currentRoomCode = roomCode;
+            roomCodeDisplay.textContent = currentRoomCode;
+            createdRoomCodeSection.style.display = 'block';
+            roomCodeSection.style.display = 'none';
+            chatArea.style.display = 'block';
+        });
+
+        // Confirmer l'entrée dans le salon
+        socket.on('room-joined', (roomCode) => {
+            currentRoomCode = roomCode;
+            chatArea.style.display = 'block';
+            roomCodeSection.style.display = 'none';
+            createdRoomCodeSection.style.display = 'none';
+        });
+
+        // Message d'erreur si le salon n'existe pas
+        socket.on('room-not-found', (message) => {
+            alert(message);
+        });
+
+        // Afficher les messages du chat
+        socket.on('chat-message', (data) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = `${data.username}: ${data.message}`;
+            messagesDiv.appendChild(messageDiv);
+        });
+
+        // Recevoir les nouveaux utilisateurs dans le salon
+        socket.on('new-user', (message) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messagesDiv.appendChild(messageDiv);
+        });
+
+        // Envoyer un message dans le chat
+        sendMessageBtn.addEventListener('click', () => {
+            const message = messageInput.value;
+            if (message) {
+                socket.emit('chat-message', { username, message, roomCode: currentRoomCode });
+                messageInput.value = '';
+            }
+        });
+    </script>
 </body>
 </html>
